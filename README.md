@@ -1,40 +1,61 @@
-Voici une version adaptée du **README** en fonction des changements dans le fichier `defaults/main.yml`.
-
 # Ansible Role: restic-exporter
 
-Ce rôle Ansible déploie et configure **restic-exporter**, un exportateur Prometheus pour le système de sauvegarde **Restic**. Le rôle gère l'installation du projet, la configuration des dépendances, la gestion des secrets et met en place un service **systemd** pour le processus.
+This Ansible role is designed to deploy and configure **restic-exporter**, a Prometheus exporter for the **Restic** backup system. It manages the installation of the exporter, configuration of dependencies, secret management, and sets up a **systemd** service for process management.
 
-### Prérequis
+### Prerequisites
 
-- Ansible 2.9 ou supérieur
-- Python 3 installé sur l'hôte cible
-- Un utilisateur avec des droits sudo sur l'hôte cible
+- Ansible 2.9 or higher
+- Python 3 installed on the target host
+- A user with sudo privileges on the target host
 
-### Fonctionnalités principales
+### Main Features
 
-- Clone le dépôt Git **restic-exporter** avec une branche et un dépôt personnalisables.
-- Crée un environnement virtuel Python pour isoler les dépendances.
-- Configure les variables d'environnement pour **Restic** et **AWS**.
-- Stocke le mot de passe Restic dans un fichier sécurisé avec des permissions appropriées.
-- Crée et configure un service **systemd** pour gérer le processus de **restic-exporter**.
+- Clones the **restic-exporter** Git repository with customizable branch and repository options.
+- Creates a Python virtual environment for isolating dependencies.
+- Configures environment variables for **Restic**, **AWS**, and **Backblaze**.
+- Stores the Restic password in a secured file with appropriate permissions.
+- Creates and configures a **systemd** service to manage the **restic-exporter** process.
 
-### Variables disponibles
+### Available Variables
 
-Le rôle est entièrement personnalisable à l'aide des variables suivantes :
+The role is fully customizable using the following variables:
 
-- `restic_exporter_repo` : URL du dépôt Git (par défaut : "https://github.com/ngosang/restic-exporter.git").
-- `restic_exporter_branch` : Branche à cloner (par défaut : "main").
-- `restic_exporter_path` : Chemin local où cloner le projet (par défaut : "/opt/restic-exporter").
-- `restic_exporter_venv` : Chemin de l'environnement virtuel (par défaut : "/opt/restic-exporter-venv").
-- `restic_password_file` : Chemin vers le fichier contenant le mot de passe Restic (par défaut : "{{ ansible_env.HOME }}/.restic_password").
-- `restic_repository` : URL ou chemin local du dépôt Restic (par défaut : "/data").
-- `restic_password` : Mot de passe pour accéder au dépôt Restic (par défaut : "your-default-password").
-- `restic_aws_access_key_id` : Clé d'accès AWS (par défaut : "your-aws-access-key-id").
-- `restic_aws_secret_access_key` : Clé secrète AWS (par défaut : "your-aws-secret-access-key").
+#### Repository Configuration
 
-### Exemple d'utilisation
+- `restic_exporter_repo`: The Git repository URL for **restic-exporter** (default: `"https://github.com/ngosang/restic-exporter.git"`).
+- `restic_exporter_branch`: The Git branch to clone (default: `"main"`).
+- `restic_exporter_path`: The local path to clone the project (default: `"/opt/restic-exporter"`).
+- `restic_exporter_venv`: Path to the Python virtual environment (default: `"/opt/restic-exporter-venv"`).
 
-Voici un exemple de playbook utilisant ce rôle :
+#### Restic Configuration
+
+- `restic_repository`: The Restic repository URL or local path (default: `"/data"`).
+- `restic_password`: The password for the Restic repository (default: empty).
+- `restic_password_file`: The file path containing the Restic password (default: `"{{ ansible_env.HOME }}/.restic_password"`).
+
+#### AWS and Backblaze Configuration (Optional)
+
+- `restic_aws_access_key_id`: AWS access key (default: empty).
+- `restic_aws_secret_access_key`: AWS secret key (default: empty).
+- `restic_b2_account_id`: Backblaze B2 account ID (default: empty).
+- `restic_b2_account_key`: Backblaze B2 account key (default: empty).
+
+#### restic-exporter Configuration
+
+- `restic_refresh_interval`: Refresh interval in seconds for the metrics (default: `60`).
+- `restic_listen_port`: The port for **restic-exporter** to listen on (default: `8001`).
+- `restic_listen_address`: The address for **restic-exporter** to listen on (default: `"0.0.0.0"`).
+- `restic_log_level`: The log level for **restic-exporter** (default: `"INFO"`).
+- `restic_exit_on_error`: Whether to shut down on any Restic error (default: `false`).
+- `restic_no_check`: Whether to skip the `restic check` operation (default: `false`).
+- `restic_no_stats`: Whether to skip the collection of backup statistics (default: `false`).
+- `restic_no_locks`: Whether to skip the collection of lock data (default: `false`).
+- `restic_include_paths`: Whether to include snapshot paths in the metrics (default: `false`).
+- `restic_insecure_tls`: Whether to skip TLS verification for self-signed certificates (default: `false`).
+
+### Usage Example
+
+Here is an example playbook using this role:
 
 ```yaml
 ---
@@ -43,29 +64,34 @@ Voici un exemple de playbook utilisant ce rôle :
   roles:
     - role: restic-exporter
       vars:
-        restic_repository: "/backups/restic-repo"
-        restic_password: "super-secret-password"
+        restic_repository: "s3:s3.amazonaws.com/my-backup-bucket"
+        restic_password: "my-secure-password"
         restic_aws_access_key_id: "my-aws-access-key-id"
         restic_aws_secret_access_key: "my-aws-secret-key"
+        restic_refresh_interval: 120
+        restic_listen_port: 9000
+        restic_log_level: "DEBUG"
+        restic_no_stats: true
+        restic_insecure_tls: true
 ```
 
-### Commandes systemd
+### systemd Commands
 
-Le rôle configure un service **systemd** pour **restic-exporter**. Utilisez les commandes suivantes pour gérer le service :
+The role configures a **systemd** service for **restic-exporter**. You can manage the service using the following commands:
 
-- **Démarrer le service** : `systemctl start restic-exporter`
-- **Arrêter le service** : `systemctl stop restic-exporter`
-- **Redémarrer le service** : `systemctl restart restic-exporter`
-- **Vérifier le statut du service** : `systemctl status restic-exporter`
+- **Start the service**: `systemctl start restic-exporter`
+- **Stop the service**: `systemctl stop restic-exporter`
+- **Restart the service**: `systemctl restart restic-exporter`
+- **Check the status of the service**: `systemctl status restic-exporter`
 
-### Sécurité
+### Security
 
-Les fichiers contenant des secrets, comme le mot de passe Restic, sont protégés avec des permissions strictes (`0600`), et le service **restic-exporter** est exécuté sous l'utilisateur **root** pour garantir un accès correct aux ressources critiques.
+The Restic password and other sensitive variables (such as AWS and Backblaze credentials) are stored securely with appropriate file permissions (`0600`). The **restic-exporter** service is run as **root** to ensure access to critical Restic configuration files.
 
 ### Contributions
 
-Les contributions sont les bienvenues. Pour signaler un problème ou proposer une amélioration, créez une **issue** ou soumettez une **pull request**.
+Contributions are welcome. To report an issue or suggest improvements, please open an **issue** or submit a **pull request**.
 
-### Licence
+### License
 
-Le rôle est distribué sous la licence **MIT**. Consultez le fichier `LICENSE` pour plus d'informations.
+This role is licensed under the **MIT** License. Check the `LICENSE` file for more information.
