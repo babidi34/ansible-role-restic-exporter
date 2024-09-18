@@ -1,0 +1,48 @@
+---
+- name: Clone restic-exporter repository
+  git:
+    repo: "{{ restic_exporter_repo }}"
+    dest: "{{ restic_exporter_path }}"
+    version: "{{ restic_exporter_branch }}"
+    force: yes
+
+- name: Install python3 and pip3
+  package:
+    name:
+      - python3
+      - python3-pip
+      - virtualenv
+    state: present
+
+- name: Create virtualenv
+  command: virtualenv "{{ restic_exporter_venv }}"
+  args:
+    creates: "{{ restic_exporter_venv }}/bin/activate"
+
+- name: Install requirements
+  pip:
+    requirements: "{{ restic_exporter_path }}/requirements.txt"
+    virtualenv: "{{ restic_exporter_venv }}"
+    virtualenv_site_packages: no
+
+- name: Write RESTIC_PASSWORD to .restic_password file
+  copy:
+    dest: "{{ restic_password_file }}"
+    content: "{{ restic_password }}"
+    owner: "{{ ansible_user }}"
+    mode: '0600'
+
+- name: Create systemd service for restic-exporter
+  template:
+    src: restic-exporter.service.j2
+    dest: /etc/systemd/system/restic-exporter.service
+    mode: '0600'
+
+- name: Reload systemd daemon
+  command: systemctl daemon-reload
+
+- name: Enable and start restic-exporter service
+  systemd:
+    name: restic-exporter
+    enabled: true
+    state: started

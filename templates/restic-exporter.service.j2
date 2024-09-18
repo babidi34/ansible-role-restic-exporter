@@ -1,0 +1,34 @@
+[Unit]
+Description=Restic Exporter Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory={{ restic_exporter_path }}
+
+# Restic environment variables
+Environment="RESTIC_REPOSITORY={{ restic_repository }}"
+Environment="RESTIC_PASSWORD={{ restic_password }}"
+Environment="RESTIC_PASSWORD_FILE={{ restic_password_file }}"
+Environment="AWS_ACCESS_KEY_ID={{ restic_aws_access_key_id }}"
+Environment="AWS_SECRET_ACCESS_KEY={{ restic_aws_secret_access_key }}"
+Environment="B2_ACCOUNT_ID={{ restic_b2_account_id }}"
+Environment="B2_ACCOUNT_KEY={{ restic_b2_account_key }}"
+
+# Restic-exporter configuration
+Environment="REFRESH_INTERVAL={{ restic_refresh_interval }}"
+Environment="LISTEN_PORT={{ restic_listen_port }}"
+Environment="LISTEN_ADDRESS={{ restic_listen_address }}"
+Environment="LOG_LEVEL={{ restic_log_level }}"
+Environment="EXIT_ON_ERROR={{ restic_exit_on_error }}"
+Environment="NO_CHECK={{ restic_no_check }}"
+Environment="NO_STATS={{ restic_no_stats }}"
+Environment="NO_LOCKS={{ restic_no_locks }}"
+Environment="INCLUDE_PATHS={{ restic_include_paths }}"
+Environment="INSECURE_TLS={{ restic_insecure_tls }}"
+
+ExecStart={{ restic_exporter_venv }}/bin/python {{ restic_exporter_path }}/restic-exporter.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

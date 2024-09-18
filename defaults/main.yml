@@ -1,0 +1,31 @@
+---
+# Default repository and branch for restic-exporter
+restic_exporter_repo: "https://github.com/ngosang/restic-exporter.git"
+restic_exporter_branch: "main"
+restic_exporter_path: "/opt/restic-exporter"
+restic_exporter_venv: "/opt/restic-exporter-venv"
+
+# Default paths for user environment
+restic_password_file: "{{ ansible_env.HOME }}/.restic_password"
+
+# Restic repository details
+restic_repository: "/data"
+restic_password: ""
+
+# AWS and Backblaze configuration
+restic_aws_access_key_id: ""
+restic_aws_secret_access_key: ""
+restic_b2_account_id: ""
+restic_b2_account_key: ""
+
+# Restic-exporter configuration
+restic_refresh_interval: 60
+restic_listen_port: 8001
+restic_listen_address: "0.0.0.0"
+restic_log_level: "INFO"
+restic_exit_on_error: false
+restic_no_check: false
+restic_no_stats: false
+restic_no_locks: false
+restic_include_paths: false
+restic_insecure_tls: false
